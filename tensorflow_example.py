@@ -3,6 +3,7 @@ import os
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist.input_data import read_data_sets
 import matplotlib.pyplot as plt
+import time
 
 
 def trans_to_one_shot(X):
@@ -44,13 +45,17 @@ def main():
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
+    ts = time.time()
     for i in range(1000):
         # print("%d round." % i)
         batchX, batchY = mnist.train.next_batch(128)
         oneY = trans_to_one_shot(batchY)
         sess.run(train_step, feed_dict={trainX: batchX, trainY: oneY})
         if i % 50 == 0:
-            print(sess.run(cross_entropy, feed_dict={trainX: batchX, trainY: oneY}))
+            new_ts = time.time()
+            spend_time = new_ts - ts
+            ts = new_ts
+            print("%f, spend %f" % (sess.run(cross_entropy, feed_dict={trainX: batchX, trainY: oneY}), spend_time))
             result = np.argmax(sess.run(Y, feed_dict={trainX: batchX[0:1, :], trainY: oneY[0:1, :]}))
             draw_number(ax, batchX[0:1, :])
             plt.title(result)

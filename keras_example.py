@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from tensorflow.examples.tutorials.mnist.input_data import read_data_sets
 import matplotlib.pyplot as plt
 
@@ -44,6 +45,7 @@ def main():
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
+    ts = time.time()
     for i in range(1000):
         # print("%d round." % i)
         batch_x, batch_y = mnist.train.next_batch(128)
@@ -56,7 +58,10 @@ def main():
         hist = nn_model.fit(batch_x, one_y, batch_size=batch_size, epochs=nb_epoch,
                             verbose=0, callbacks=[early_stopping])
         if i % 50 == 0:
-            print('loss = %f' % hist.history["loss"][-1])
+            new_ts = time.time()
+            spend_time = new_ts - ts
+            ts = new_ts
+            print('loss = %f, spend %f.' % (hist.history["loss"][-1], spend_time))
             draw_number(ax, batch_x[0:1, :])
             result = nn_model.predict(batch_x[0:1, :])
             result = np.argmax(nn_model.predict(batch_x[0:1, :]))
