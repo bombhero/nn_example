@@ -42,7 +42,6 @@ def main():
     mnist = read_data_sets("./data")
     nn_model = build_model(0)
 
-    return
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     for i in range(1000):
