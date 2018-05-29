@@ -19,12 +19,13 @@ def calc_fitness(genomes, config):
     global mnist
     for g_id, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
-        genome.fitness = 1280
+        fitness = 1280
         batch_x, batch_y = mnist.train.next_batch(128)
         one_y = trans_to_one_shot(batch_y)
         for in_x, out_y in zip(batch_x, one_y):
             result_y = np.array(net.activate(in_x))
-            genome.fitness -= np.sum((result_y - out_y) ** 2)
+            fitness -= np.sum(np.abs(result_y - out_y))
+        genome.fitness = fitness / 1280
 
 
 def main():
@@ -39,14 +40,10 @@ def main():
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(5))
     winner = p.run(calc_fitness, 10)
-    draw_net(neat_config, winner, True, fmt='png')
+    draw_net(neat_config, winner, True)
 
 
 if __name__ == '__main__':
     main()
-
-
-
-
 
 
