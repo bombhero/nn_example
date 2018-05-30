@@ -1,6 +1,7 @@
 import os
 import neat
 import numpy as np
+import multiprocessing
 from visualize import draw_net
 from tensorflow.examples.tutorials.mnist.input_data import read_data_sets
 
@@ -15,17 +16,21 @@ def trans_to_one_shot(x):
     return one_hot
 
 
-def calc_fitness(genomes, config):
+def calc_fitness(genome, config):
     global mnist
-    for g_id, genome in genomes:
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-        fitness = 1280
-        batch_x, batch_y = mnist.train.next_batch(128)
-        one_y = trans_to_one_shot(batch_y)
-        for in_x, out_y in zip(batch_x, one_y):
-            result_y = np.array(net.activate(in_x))
-            fitness -= np.sum(np.abs(result_y - out_y))
-        genome.fitness = fitness / 1280
+    net = neat.nn.FeedForwardNetwork.create(genome, config)
+    fitness = 1280
+    batch_x, batch_y = mnist.train.next_batch(128)
+    one_y = trans_to_one_shot(batch_y)
+    for in_x, out_y in zip(batch_x, one_y):
+        result_y = np.array(net.activate(in_x))
+        fitness -= np.sum(np.abs(result_y - out_y))
+    return fitness / 1280
+
+
+def parallel_fitness(genomes, config):
+    parallel_calc = neat.ParallelEvaluator(multiprocessing.cpu_count(), calc_fitness)
+    parallel_calc.evaluate(genomes, config)
 
 
 def main():
@@ -39,7 +44,7 @@ def main():
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(5))
-    winner = p.run(calc_fitness, 10)
+    winner = p.run(parallel_fitness, 10)
     draw_net(neat_config, winner, True)
 
 
