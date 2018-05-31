@@ -19,13 +19,13 @@ def trans_to_one_shot(x):
 def calc_fitness(genome, config):
     global mnist
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-    fitness = 1280
+    fitness = 128
     batch_x, batch_y = mnist.train.next_batch(128)
-    one_y = trans_to_one_shot(batch_y)
-    for in_x, out_y in zip(batch_x, one_y):
-        result_y = np.array(net.activate(in_x))
-        fitness -= np.sum(np.abs(result_y - out_y))
-    return fitness / 1280
+    for in_x, out_y in zip(batch_x, batch_y):
+        result_y = np.argmax(net.activate(in_x))
+        if result_y != out_y:
+            fitness -= 1
+    return fitness / 128
 
 
 def parallel_fitness(genomes, config):
@@ -44,7 +44,7 @@ def main():
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(5))
-    winner = p.run(parallel_fitness, 10)
+    winner = p.run(parallel_fitness, 100)
     draw_net(neat_config, winner, True)
 
 
