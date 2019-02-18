@@ -33,14 +33,14 @@ def main():
     tensor_x = torch.from_numpy(np.float32(mnist_data.train_data))
     tensor_y = torch.from_numpy(np.reshape(mnist_data.train_label, [60000, ]))
     train_x, train_y = Variable(tensor_x).to("cpu"), Variable(tensor_y).to("cpu")
-    # net = Net(784, 200, 10)
-    net = torch.nn.Sequential(
-        torch.nn.BatchNorm1d(784),
-        torch.nn.Linear(784, 200),
-        torch.nn.Tanh(),
-        torch.nn.Linear(200, 10),
-        torch.nn.LogSoftmax(dim=1)
-    )
+    net = Net(784, 200, 10)
+    # net = torch.nn.Sequential(
+    #     torch.nn.BatchNorm1d(784),
+    #     torch.nn.Linear(784, 200),
+    #     torch.nn.Tanh(),
+    #     torch.nn.Linear(200, 10),
+    #     torch.nn.LogSoftmax(dim=1)
+    # )
     optimizer = torch.optim.SGD(net.parameters(), lr=0.01)
     print(net)
     for i in range(100):
