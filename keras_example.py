@@ -1,25 +1,21 @@
 import numpy as np
 import time
-from tensorflow.examples.tutorials.mnist.input_data import read_data_sets
 import matplotlib.pyplot as plt
+import tensorflow as tf
+from mnist_read import read_mnist
+from tensorflow.keras import layers
 
 
 def build_model(verbose=0):
-    from keras.models import Sequential
-    from keras.layers.core import Dense, Dropout, Activation
-    from keras.layers.normalization import BatchNormalization
-    from keras.optimizers import Adam
+    input_data = tf.keras.Input(shape=(784,), name="Input")
+    x = layers.BatchNormalization()(input_data)
+    y = layers.Dense(10, activation="softmax")(x)
+    model = tf.keras.Model(inputs=input_data, outputs=y, name="MnistModel")
 
-    model = Sequential()
-    model.add(BatchNormalization(input_shape=(784,)))
-    model.add(Dense(10, input_shape=(784,)))
-    model.add(Activation('sigmoid'))
-
-    if verbose == 1:
-        model.summary()
+    model.summary()
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer=Adam(lr=0.01, decay=0.01),
+                  optimizer=tf.keras.optimizers.Adam(lr=0.01, decay=0.01),
                   metrics=['accuracy'])
     return model
 
@@ -38,9 +34,7 @@ def trans_to_one_shot(X):
 
 
 def main():
-    from keras.callbacks import EarlyStopping
-
-    mnist = read_data_sets("./data")
+    mnist = read_mnist("data")
     nn_model = build_model(0)
 
     fig = plt.figure()

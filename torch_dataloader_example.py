@@ -8,9 +8,11 @@ from mnist_read import read_mnist
 import matplotlib.pyplot as plt
 
 
+batch_size = 3000
+
+
 class TrainDataset(Dataset):
-    def __init__(self):
-        mnist_data = read_mnist("data")
+    def __init__(self, mnist_data):
         self.train_data = np.uint8(mnist_data.train_data)
         self.train_label = np.reshape(mnist_data.train_label, [len(mnist_data.train_label), ])
         pass
@@ -28,8 +30,7 @@ class TrainDataset(Dataset):
 
 
 class TestDataset(Dataset):
-    def __init__(self):
-        mnist_data = read_mnist("data")
+    def __init__(self, mnist_data):
         self.test_data = np.uint8(mnist_data.test_data)
         self.test_label = np.reshape(mnist_data.test_label, [len(mnist_data.test_label), ])
 
@@ -99,16 +100,17 @@ def main():
         device = torch.device("cuda")
     else:
         device = torch.device("cpu")
-    train_dataset = TrainDataset()
-    train_dataloader = DataLoader(dataset=train_dataset, batch_size=2048, shuffle=True)
-    test_dataset = TestDataset()
-    test_dataloader = DataLoader(dataset=test_dataset, batch_size=2048, shuffle=True)
+    mnist_data = read_mnist("data")
+    train_dataset = TrainDataset(mnist_data)
+    train_dataloader = DataLoader(dataset=train_dataset, batch_size=3000, shuffle=True)
+    test_dataset = TestDataset(mnist_data)
+    test_dataloader = DataLoader(dataset=test_dataset, batch_size=3000, shuffle=True)
     net = build_first_nn(device)
     optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
     print(net)
     loss_record = []
     early_stop_count = 0
-    for i in range(10000):
+    for i in range(100000):
         net.train()
         loss_val = 0
         for j, data in enumerate(train_dataloader):
@@ -134,14 +136,13 @@ def main():
                           (loss_val, (sum_list(loss_record) / len(loss_record))))
                     break
 
-    result_y = None
     net.eval()
     correct = 0
     total = 0
     for i, data in enumerate(test_dataloader):
         test_x, test_y = data
         tensor_x = test_x.to(device)
-        predict_y = np.argmax(net(tensor_x).cpu().detach().numpy(), axis=1)
+        predict_y = net(tensor_x).cpu().detach().argmax(dim=1)
         correct += predict_y.eq(test_y.view_as(predict_y)).sum().item()
         total += test_y.shape[0]
         print("Testing {}/{}".format(correct, total))
