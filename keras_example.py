@@ -21,8 +21,8 @@ def build_model(verbose=0):
 
 
 def draw_number(ax, X):
-    Matrix = np.reshape(X, [28, 28])
-    ax.imshow(Matrix)
+    matrix = np.reshape(X, [28, 28])
+    ax.imshow(matrix)
 
 
 def trans_to_one_shot(X):
@@ -37,32 +37,24 @@ def main():
     mnist = read_mnist("data")
     nn_model = build_model(0)
 
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
     ts = time.time()
-    for i in range(1000):
+    for i in range(1):
         # print("%d round." % i)
-        batch_x, batch_y = mnist.train.next_batch(128)
+        batch_x, batch_y = mnist.train_data, mnist.train_label
         one_y = trans_to_one_shot(batch_y)
 
         batch_size = batch_x.shape[0]
-        nb_epoch = 100
+        nb_epoch = 5
 
-        early_stopping = EarlyStopping(monitor='loss', patience=2)
-        hist = nn_model.fit(batch_x, one_y, batch_size=batch_size, epochs=nb_epoch,
-                            verbose=0, callbacks=[early_stopping])
-        if i % 50 == 0:
-            new_ts = time.time()
-            spend_time = new_ts - ts
-            ts = new_ts
-            print('loss = %f, spend %f.' % (hist.history["loss"][-1], spend_time))
-            draw_number(ax, batch_x[0:1, :])
-            result = nn_model.predict(batch_x[0:1, :])
-            result = np.argmax(nn_model.predict(batch_x[0:1, :]))
-            plt.title(result)
-            plt.ion()
-            plt.show()
-            plt.pause(1)
+        # early_stopping = EarlyStopping(monitor='loss', patience=2)
+        hist = nn_model.fit(batch_x, one_y, batch_size=batch_size, epochs=nb_epoch)
+        new_ts = time.time()
+        spend_time = new_ts - ts
+
+        test_x, test_y = mnist.test_data, mnist.test_label
+        predict_y = np.argmax(nn_model.predict(test_x), axis=1)
+        correct = (test_y.reshape([test_y.shape[0]]) == predict_y).sum()
+        print("{}/{}".format(correct, test_y.shape[0]))
 
 
 if __name__ == "__main__":
