@@ -88,13 +88,6 @@ def build_first_nn(device):
     return net
 
 
-def sum_list(li_number):
-    sum_number = 0
-    for num in li_number:
-        sum_number += num
-    return sum_number
-
-
 def main():
     if torch.cuda.is_available():
         device = torch.device("cuda")
@@ -127,13 +120,13 @@ def main():
             loss_record.append(loss_val)
             if len(loss_record) > 10:
                 del (loss_record[0])
-                if loss_val > (sum_list(loss_record) / len(loss_record)):
+                if loss_val > (sum(loss_record) / len(loss_record)):
                     early_stop_count += 1
                     print("Early stop ready: count=%d, current_loss=%.8f, average=%.8f" %
-                          (early_stop_count, loss_val, (sum_list(loss_record) / len(loss_record))))
-                if early_stop_count > 1 and loss_val < (sum_list(loss_record) / len(loss_record)):
+                          (early_stop_count, loss_val, (sum(loss_record) / len(loss_record))))
+                if early_stop_count > 1 and loss_val < (sum(loss_record) / len(loss_record)):
                     print("Early stop done: current_loss=%.8f, average=%.8f" %
-                          (loss_val, (sum_list(loss_record) / len(loss_record))))
+                          (loss_val, (sum(loss_record) / len(loss_record))))
                     break
 
     net.eval()
