@@ -11,8 +11,8 @@ class TrainDataSet(torch.utils.data.Dataset):
 
     def __getitem__(self, item):
         position = float(item) / 100
-        x = math.sin(math.pi * position)
-        y = math.cos(math.pi * position) + random.uniform(-0.1, 0.1)
+        x = math.sin(math.pi * position) + random.uniform(-0.1, 0.1)
+        y = math.cos(math.pi * position)
         return x, y
 
     def __len__(self):
@@ -22,12 +22,12 @@ class TrainDataSet(torch.utils.data.Dataset):
 class DemoRNN(torch.nn.Module):
     def __init__(self):
         super(DemoRNN, self).__init__()
-        self.rnn = torch.nn.RNN(input_size=1, hidden_size=10, num_layers=1, batch_first=True)
+        self.rnn = torch.nn.RNN(input_size=1, hidden_size=10, num_layers=3, batch_first=True)
         self.output_layer = torch.nn.Linear(in_features=10, out_features=1)
 
     def forward(self, x, hidden):
         output, h_out = self.rnn(x, hidden)
-        linear_input = output[0, :, :]
+        linear_input = output.view(-1, output.shape[2])
         output = self.output_layer(linear_input)
         return output, h_out
 
