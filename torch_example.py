@@ -1,4 +1,6 @@
 import torch
+import time
+import random
 import numpy as np
 import torch.nn.functional as functional
 from torch.autograd import Variable
@@ -29,21 +31,23 @@ def trans_to_one_shot(label_x):
 
 
 def main():
+    calc_device = "cuda"
     mnist_data = read_mnist("data")
     tensor_x = torch.from_numpy(np.float32(mnist_data.train_data))
     tensor_y = torch.from_numpy(np.reshape(mnist_data.train_label, [60000, ]))
-    train_x, train_y = Variable(tensor_x).to("cpu"), Variable(tensor_y).to("cpu")
-    net = Net(784, 200, 10)
-    # net = torch.nn.Sequential(
-    #     torch.nn.BatchNorm1d(784),
-    #     torch.nn.Linear(784, 200),
-    #     torch.nn.Tanh(),
-    #     torch.nn.Linear(200, 10),
-    #     torch.nn.LogSoftmax(dim=1)
-    # )
+    train_x, train_y = Variable(tensor_x).to(calc_device), Variable(tensor_y).to(calc_device)
+    # net = Net(784, 200, 10)
+    net = torch.nn.Sequential(
+        torch.nn.BatchNorm1d(784),
+        torch.nn.Linear(784, 200),
+        torch.nn.Tanh(),
+        torch.nn.Linear(200, 10),
+        torch.nn.LogSoftmax(dim=1)
+    ).to(calc_device)
     optimizer = torch.optim.SGD(net.parameters(), lr=0.01)
     print(net)
-    for i in range(100):
+    for i in range(1000):
+        start_ts = time.time()
         net.train()
         optimizer.zero_grad()
         output = net(train_x)
@@ -52,19 +56,23 @@ def main():
         optimizer.step()
 
         net.eval()
-        test_x = Variable(torch.from_numpy(np.float32(mnist_data.test_data)))
-        test_y = Variable(torch.from_numpy(np.reshape(mnist_data.test_label, [10000, ])))
+        test_x = Variable(torch.from_numpy(np.float32(mnist_data.test_data))).to(calc_device)
+        test_y = Variable(torch.from_numpy(np.reshape(mnist_data.test_label, [10000, ]))).to(calc_device)
         output = net(test_x)
         y_pred = output.argmax(dim=1, keepdim=True)
         correct = y_pred.eq(test_y.view_as(y_pred)).sum().item()
 
-        print("Epoch %d, loss %.6f, %d / %d" % (i, loss.item(), correct, test_x.shape[0]))
+        end_ts = time.time()
+        spent_time = end_ts - start_ts
+        print("Epoch %d, spent %.2f loss %.6f, %d / %d" % (i, spent_time, loss.item(), correct, test_x.shape[0]))
 
-    tensor_x = torch.from_numpy(np.float32(mnist_data.test_data[0:1, :]))
-    test_x = Variable(tensor_x).to("cpu")
+    idx = random.randint(0, 1000)
+    print('idx = {}'.format(idx))
+    tensor_x = torch.from_numpy(np.float32(mnist_data.test_data[idx:(idx+1), :]))
+    test_x = Variable(tensor_x).to(calc_device)
     y_prediction = net(test_x)
     print(y_prediction.argmax(dim=1, keepdim=True))
-    im_data = np.reshape(mnist_data.test_data[0, :], [28, 28])
+    im_data = np.reshape(mnist_data.test_data[idx, :], [28, 28])
     plt.imshow(im_data)
     plt.show()
 
