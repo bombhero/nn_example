@@ -69,9 +69,18 @@ def main():
     idx = random.randint(0, 1000)
     print('idx = {}'.format(idx))
     tensor_x = torch.from_numpy(np.float32(mnist_data.test_data[idx:(idx+1), :]))
+    y = mnist_data.test_label[idx, :]
     test_x = Variable(tensor_x).to(calc_device)
     y_prediction = net(test_x)
-    print(y_prediction.argmax(dim=1, keepdim=True))
+    print('Test: y_pred={}, y={}'.format(y_prediction.argmax(dim=1, keepdim=True), y))
+    torch.save(net, 'tmp/torch_example.pkl')
+
+    verify_net = torch.load('tmp/torch_example.pkl')
+    verify_net.to(calc_device)
+    verify_net.eval()
+    y_pred = verify_net(test_x)
+    print('Verify: y_pred={}, y={}'.format(y_pred.argmax(dim=1, keepdim=True), y))
+
     im_data = np.reshape(mnist_data.test_data[idx, :], [28, 28])
     plt.imshow(im_data)
     plt.show()

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 class LiteNet(pl.LightningModule):
     def __init__(self, n_input, n_hidden, n_output):
-        super().__init__()
+        super(LiteNet, self).__init__()
         self.norm_layer = torch.nn.BatchNorm1d(n_input)
         self.hidden_layer = torch.nn.Linear(n_input, n_hidden)
         self.hidden_func = torch.nn.Tanh()
@@ -90,7 +90,16 @@ def main():
     lite_net.eval()
     input_x = test_x.unsqueeze(0).to(device)
     pred_y = torch.argmax(lite_net(input_x), axis=1).cpu().detach().numpy()
-    print('pred_y = {}, y = {}'.format(pred_y, test_y))
+    print('Test: pred_y = {}, y = {}'.format(pred_y, test_y))
+    trainer.save_checkpoint('tmp/pl_example.ckpt')
+
+    # verify_net = LiteNet(784, 200, 10).to(device)
+    verify_net = LiteNet.load_from_checkpoint('tmp/pl_example.ckpt', n_input=784, n_hidden=200, n_output=10)
+    verify_net.to(device)
+    verify_net.eval()
+    pred_y = torch.argmax(verify_net(input_x), axis=1).cpu().detach().numpy()
+    print('Verify: pred_y = {}, y = {}'.format(pred_y, test_y))
+
     im_data = np.reshape(test_x.detach().numpy(), [28, 28])
     plt.imshow(im_data)
     plt.show()
